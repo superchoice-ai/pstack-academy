@@ -1,14 +1,16 @@
-# Welcome to your Lovable project
+# pstack-academy
+
+Create a minimal blank starter named pstack-academy: Vite + React + TypeScript + Tailwind + shadcn/ui + react-router. Only one placeholder home page with the title 'SuperChoice AI - pstack Academy' and text 'Coming soon'. No other features, no backend, no Supabase/Lovable Cloud.
 
 This project was built with [Lovable](https://lovable.dev).
 
 ## Build with Lovable
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
+Continue developing this project in the [Lovable editor](https://lovable.dev/projects/d37e1841-06ba-4dd3-888d-1ac352926116).
 
 - **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
+- **Stay in sync**: every change made in Lovable is committed straight to this repository.
+- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
 
 ## Development
 
@@ -20,10 +22,3 @@ cd <repository-name>
 npm i
 npm run dev
 ```
-
-## Built with
-
-- TanStack Start
-- TypeScript
-- React
-- Tailwind CSS
