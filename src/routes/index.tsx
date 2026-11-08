@@ -19,6 +19,6 @@ function Index() {
     <main className="flex min-h-screen flex-col items-center justify-center gap-3 bg-background px-6 text-center text-foreground">
       <h1 className="text-3xl font-semibold">SuperChoice AI - pstack Academy</h1>
       <p className="text-muted-foreground">Coming soon</p>
-    </div>
+    </main>
   );
 }
