@@ -84,6 +84,7 @@ export const messages: Record<MessageKey, string> = {
   "exam.rule4":
     "Sair da janela desfoca o exame e é contado. Um navegador não impede totalmente uma captura de tela.",
   "exam.rule5": "Copiar, imprimir e o menu de contexto ficam desligados na página das perguntas.",
+  "exam.turnstileRejected": "A verificação humana não foi aceita.",
   "exam.start": "Começar",
   "exam.continue": "Continuar",
   "exam.needName": "Digite seu nome para começar.",
@@ -142,9 +143,15 @@ export const messages: Record<MessageKey, string> = {
   "cert.verifyLabel": "Verificar",
   "cert.course": "pstack Fundamentals",
   "cert.working": "Preparando o certificado…",
+  "cert.registered": "Gravado no registro público.",
+  "cert.registryOffline": "Não foi possível contatar o registro. O link ainda carrega o registro.",
   "verify.title": "Verificar um certificado",
   "verify.coming":
     "A verificação no servidor está a caminho. Esta página só decodifica o registro carregado no link. Não consulta um registro, então um link fabricado pode mostrar um registro que nunca foi emitido.",
+  "verify.verified": "Verificado",
+  "verify.notFound": "Não encontrado",
+  "verify.checking": "Consultando o registro…",
+  "verify.registryMiss": "O registro não tem um certificado com este id.",
   "verify.ok": "O link contém um registro de certificado.",
   "verify.invalid": "Este link não contém um registro legível.",
   "verify.mismatch": "O id do caminho não coincide com o registro.",

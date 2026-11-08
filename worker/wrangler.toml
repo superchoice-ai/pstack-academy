@@ -1,0 +1,13 @@
+name = "pstack-academy-api"
+account_id = "496494538991c7ddb3009232a1102139"
+main = "src/index.ts"
+compatibility_date = "2026-11-08"
+
+# Free-plan Worker. Do not attach this project to the Lovable Vite build.
+# TURNSTILE_SECRET_KEY is a secret (`wrangler secret put`), not a var in this file.
+
+[[d1_databases]]
+binding = "DB"
+database_name = "pstack-academy"
+database_id = "836e0f89-d175-44fd-9a9d-22f5e4141e93"
+migrations_dir = "migrations"

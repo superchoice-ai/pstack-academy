@@ -87,6 +87,7 @@ export const messages: Record<MessageKey, string> = {
   "exam.rule4":
     "Quitter la fenêtre floute l'examen et est compté. Un navigateur ne peut pas empêcher toute capture d'écran.",
   "exam.rule5": "Copier, imprimer et le menu contextuel sont désactivés sur la page des questions.",
+  "exam.turnstileRejected": "La vérification humaine n'a pas été acceptée.",
   "exam.start": "Commencer",
   "exam.continue": "Reprendre",
   "exam.needName": "Indiquez votre nom pour commencer.",
@@ -145,9 +146,15 @@ export const messages: Record<MessageKey, string> = {
   "cert.verifyLabel": "Vérifier",
   "cert.course": "pstack Fundamentals",
   "cert.working": "Préparation du certificat…",
+  "cert.registered": "Enregistré dans le registre public.",
+  "cert.registryOffline": "Le registre est injoignable. Le lien porte toujours l'enregistrement.",
   "verify.title": "Vérifier un certificat",
   "verify.coming":
     "La vérification côté serveur arrive. Cette page décode seulement l'enregistrement porté par le lien. Elle ne consulte pas de registre : un lien fabriqué peut donc afficher un enregistrement jamais délivré.",
+  "verify.verified": "Vérifié",
+  "verify.notFound": "Introuvable",
+  "verify.checking": "Consultation du registre…",
+  "verify.registryMiss": "Le registre ne contient pas de certificat avec cet identifiant.",
   "verify.ok": "Le lien contient un enregistrement de certificat.",
   "verify.invalid": "Ce lien ne contient pas d'enregistrement lisible.",
   "verify.mismatch": "L'identifiant du chemin ne correspond pas à l'enregistrement.",

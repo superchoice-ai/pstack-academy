@@ -22,6 +22,7 @@ export type Attempt = {
   status: "active" | "submitted";
   result?: AttemptResult;
   certificateId?: string;
+  turnstileToken?: string;
 };
 
 const STORAGE_KEY = "scai-exam-attempt";
@@ -73,7 +74,7 @@ export function clearAttempt(): void {
   sessionStorage.removeItem(STORAGE_KEY);
 }
 
-export function createAttempt(name: string): Attempt {
+export function createAttempt(name: string, turnstileToken = ""): Attempt {
   const id = crypto.randomUUID();
   const bank = questionsFor("en").questions;
   const drawn = drawExam(bank, id);
@@ -90,6 +91,7 @@ export function createAttempt(name: string): Attempt {
     blurCount: 0,
     status: "active",
   };
+  if (turnstileToken) attempt.turnstileToken = turnstileToken;
   writeAttempt(attempt);
   return attempt;
 }

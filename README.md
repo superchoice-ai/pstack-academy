@@ -63,7 +63,7 @@ Posts, lessons, and questions do not have to exist in the new language. Missing 
 
 The question page is only rendered after **Start attempt** on `/exam` writes an attempt token to `sessionStorage`. Opening `/exam/session` directly does not include the questions.
 
-When `VITE_TURNSTILE_SITE_KEY` is set, the landing page renders a Cloudflare Turnstile widget and blocks start until the widget returns a token. **That token is not verified on a server yet.** `src/components/turnstile.tsx` records the follow-up: a Worker must call Cloudflare's siteverify API before an attempt is accepted. Leave the variable unset in local development and the exam runs without the widget.
+When `VITE_TURNSTILE_SITE_KEY` is set, the landing page renders a Cloudflare Turnstile widget and blocks start until the widget returns a token. The site key does not exist yet, so the widget stays hidden. If a token is present, the browser asks `POST /api/turnstile/verify` on the worker. When `TURNSTILE_SECRET_KEY` is unset, that endpoint returns `{ ok: true, skipped: true }` and the exam starts. If the API cannot be reached, the exam still starts. A rejected token does not.
 
 The question page blocks the context menu, copy, cut, paste, text selection, and a set of print, save, and devtools shortcuts. Print CSS hides the questions. Leaving the window or hiding the tab blurs the page and increments a counter. A name, attempt id, and clock are painted across the page as a watermark.
 
@@ -73,12 +73,35 @@ Pass mark is 80% (16 of 20). The timer is 30 minutes. After submit, the review s
 
 ## Certificate
 
-A passing attempt can download a PNG and a PDF. The image includes the name, score, date, certificate id, and a QR code. The public page is `/verify/<id>?d=<payload>`. Until a backend exists, the payload is the record: the verify page decodes it and says that server-side verification is coming. A crafted link can display a record that was never issued. Do not treat that page as proof.
+A passing attempt can download a PNG and a PDF. The image includes the name, score, date, certificate id, and a QR code. The page also `POST`s the certificate to the worker registry (`id`, `name`, `score`, `lang`, `issued_at`, `attempt_id`). The default API base is `https://pstack-academy-api.auichai-s2.workers.dev`. Override it with `VITE_API_BASE`.
+
+`/verify/<id>` asks `GET /api/certificates/:id`. A registry hit shows **Verified**. A JSON `not_found` from this API shows **Not found**. If the API cannot be reached, the page falls back to the record embedded in `?d=` and keeps the warning that a crafted link is not proof.
+
+## Worker
+
+`worker/` is a separate Cloudflare Worker. It is not part of the Lovable or Vite build. Tests:
+
+```sh
+cd worker
+bun test
+```
+
+### Deploy (Cloudflare free plan)
+
+Do this from `worker/` after `bunx wrangler login`. Nothing in this repo deploys itself.
+
+```sh
+bunx wrangler d1 migrations apply pstack-academy --remote
+bunx wrangler secret put TURNSTILE_SECRET_KEY
+bunx wrangler deploy
+```
+
+`wrangler.toml` already names the worker `pstack-academy-api`, sets the account id, and binds D1 database `pstack-academy` as `DB`. Leave `TURNSTILE_SECRET_KEY` unset until the Turnstile secret exists: Siteverify is skipped and certificate registration still works. The secret is not stored in the repo. CORS allows `https://superchoice-academy-portal.lovable.app` plus `localhost` and `127.0.0.1`.
 
 ## Roadmap
 
-- Cloudflare Worker and D1: verify Turnstile tokens, keep exam sessions on the server, and store issued certificates so `/verify/<id>` checks a registry.
-- LINE OA, n8n, MCP, and a public HTTP API. The home page lists these as coming soon.
+- Exam sessions still live in the browser. A later step can move the question draw onto the worker.
+- LINE OA, n8n, MCP, and a public HTTP API beyond the certificate registry. The home page lists these as coming soon.
 
 ## Lovable
 

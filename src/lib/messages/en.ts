@@ -81,6 +81,7 @@ export const messages = {
   "exam.rule4":
     "Leaving the window blurs the exam and is counted. A browser cannot fully stop a screenshot.",
   "exam.rule5": "Copying, printing, and the right-click menu are disabled on the question page.",
+  "exam.turnstileRejected": "The human check was not accepted.",
   "exam.start": "Start attempt",
   "exam.continue": "Continue attempt",
   "exam.needName": "Enter your name to start.",
@@ -140,9 +141,15 @@ export const messages = {
   "cert.verifyLabel": "Verify",
   "cert.course": "pstack Fundamentals",
   "cert.working": "Preparing the certificate…",
+  "cert.registered": "Recorded in the public registry.",
+  "cert.registryOffline": "The registry could not be reached. The link still carries the record.",
   "verify.title": "Verify a certificate",
   "verify.coming":
     "Server-side verification is coming. This page only decodes the record carried in the link. It does not check a registry, so a crafted link can show a record that was never issued.",
+  "verify.verified": "Verified",
+  "verify.notFound": "Not found",
+  "verify.checking": "Checking the registry…",
+  "verify.registryMiss": "The registry has no certificate with this id.",
   "verify.ok": "The link contains a certificate record.",
   "verify.invalid": "This link does not contain a readable certificate record.",
   "verify.mismatch": "The certificate id in the path does not match the record.",

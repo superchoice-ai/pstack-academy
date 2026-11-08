@@ -1,9 +1,9 @@
 import { useEffect, useRef } from "react";
 
 /**
- * TODO(server): Send the Turnstile token to a Cloudflare Worker and verify it
- * with the siteverify API before the exam attempt is accepted. The token in
- * the browser is not proof until that check exists. See the README roadmap.
+ * The widget renders only when VITE_TURNSTILE_SITE_KEY is set.
+ * worker/ checks the token with Cloudflare Siteverify when TURNSTILE_SECRET_KEY
+ * is set. Until that secret exists, the worker reports the check as skipped.
  */
 type TurnstileApi = {
   render: (
