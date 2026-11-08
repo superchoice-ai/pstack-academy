@@ -1,5 +1,5 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { readAttempt, writeAttempt, type Attempt } from "@/lib/attempt";
 import {
@@ -13,6 +13,7 @@ import {
 } from "@/lib/certificate";
 import { fill, formatDate, isoDate } from "@/lib/format";
 import { PageTitle, useI18n } from "@/lib/i18n";
+import { registerCertificate } from "@/lib/registry";
 
 export const Route = createFileRoute("/certificate")({
   head: () => ({
@@ -36,6 +37,8 @@ function CertificatePage() {
   const [pdf, setPdf] = useState<Blob | null>(null);
   const [certId, setCertId] = useState("");
   const [verifyUrl, setVerifyUrl] = useState("");
+  const [registryStatus, setRegistryStatus] = useState<"" | "registered" | "unreachable">("");
+  const posted = useRef("");
 
   useEffect(() => {
     const current = readAttempt();
@@ -97,6 +100,31 @@ function CertificatePage() {
     };
   }, [attempt, certId, dir, lang, name, t]);
 
+  useEffect(() => {
+    if (!attempt?.result || !certId || name.trim().length < 2) return;
+    const key = `${certId}:${name.trim()}`;
+    if (posted.current === key) return;
+    posted.current = key;
+    let cancelled = false;
+    let finished = false;
+    void registerCertificate({
+      id: certId,
+      name: name.trim(),
+      score: attempt.result.percent,
+      lang,
+      issued_at: new Date(attempt.result.submittedAt).toISOString(),
+      attempt_id: attempt.id,
+      ...(attempt.turnstileToken ? { turnstileToken: attempt.turnstileToken } : {}),
+    }).then((status) => {
+      finished = true;
+      if (!cancelled) setRegistryStatus(status);
+    });
+    return () => {
+      cancelled = true;
+      if (!finished) posted.current = "";
+    };
+  }, [attempt, certId, lang, name]);
+
   if (attempt === undefined) return <p className="px-6 py-16">{t("cert.working")}</p>;
   if (!attempt?.result?.passed) {
     return (
@@ -145,6 +173,16 @@ function CertificatePage() {
           {t("cert.downloadPdf")}
         </button>
       </div>
+      {registryStatus === "registered" ? (
+        <p className="mt-4 text-sm text-primary" data-testid="registry-status">
+          {t("cert.registered")}
+        </p>
+      ) : null}
+      {registryStatus === "unreachable" ? (
+        <p className="mt-4 text-sm text-muted-foreground" data-testid="registry-status">
+          {t("cert.registryOffline")}
+        </p>
+      ) : null}
       {verifyUrl ? (
         <p className="mt-6 text-sm">
           <a data-testid="verify-link" href={verifyUrl} className="text-primary underline">

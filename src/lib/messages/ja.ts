@@ -82,6 +82,7 @@ export const messages: Record<MessageKey, string> = {
   "exam.rule4":
     "ウィンドウを離れると試験はぼやけ、回数に数えられます。ブラウザはスクリーンショットを完全には止められません。",
   "exam.rule5": "問題ページではコピー、印刷、右クリックメニューを無効にしています。",
+  "exam.turnstileRejected": "人間であることの確認が通りませんでした。",
   "exam.start": "開始",
   "exam.continue": "続ける",
   "exam.needName": "開始するには名前を入れてください。",
@@ -140,9 +141,15 @@ export const messages: Record<MessageKey, string> = {
   "cert.verifyLabel": "確認",
   "cert.course": "pstack Fundamentals",
   "cert.working": "証明書を準備しています…",
+  "cert.registered": "公開台帳に記録しました。",
+  "cert.registryOffline": "台帳に接続できません。リンクは引き続き記録を運びます。",
   "verify.title": "証明書を確認する",
   "verify.coming":
     "サーバー側の確認はこれからです。このページはリンクに載った記録を読むだけです。台帳は見ていないので、作られたリンクが、発行されていない記録を表示することもあります。",
+  "verify.verified": "確認済み",
+  "verify.notFound": "見つかりません",
+  "verify.checking": "台帳を確認しています…",
+  "verify.registryMiss": "台帳にこの ID の証明書はありません。",
   "verify.ok": "リンクに証明書の記録があります。",
   "verify.invalid": "このリンクに読める証明書の記録はありません。",
   "verify.mismatch": "パスの証明書 ID が記録と一致しません。",

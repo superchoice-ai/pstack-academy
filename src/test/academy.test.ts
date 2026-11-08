@@ -5,6 +5,7 @@ import { drawExam, scoreAttempt } from "@/lib/exam";
 import { decodePayload, encodePayload, jpegToPdf, type CertPayload } from "@/lib/certificate";
 import { buildJsonFeed, buildRss } from "@/lib/feed";
 import { matchLanguage } from "@/lib/languages";
+import { apiBase, classifyLookup, DEFAULT_API_BASE } from "@/lib/registry";
 import { renderMarkdown } from "@/lib/markdown";
 import { messages as en } from "@/lib/messages/en";
 import { messages as ar } from "@/lib/messages/ar";
@@ -134,6 +135,26 @@ describe("certificate", () => {
     expect(text.startsWith("%PDF-1.4")).toBe(true);
     expect(text).toContain("%%EOF");
     expect(pdf.includes(0xff)).toBe(true);
+  });
+});
+
+describe("registry client", () => {
+  it("defaults the API base and only trusts this API's not_found body", () => {
+    expect(apiBase()).toBe(DEFAULT_API_BASE);
+    expect(classifyLookup(404, { error: "not_found" }).status).toBe("not_found");
+    expect(classifyLookup(404, "<html>missing worker</html>").status).toBe("unreachable");
+    expect(
+      classifyLookup(200, {
+        certificate: {
+          id: "SC-1",
+          name: "Amina",
+          score: 80,
+          lang: "en",
+          issued_at: "2026-11-08T00:00:00.000Z",
+          attempt_id: "a",
+        },
+      }).status,
+    ).toBe("verified");
   });
 });
 

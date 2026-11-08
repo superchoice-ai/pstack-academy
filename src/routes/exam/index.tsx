@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { TurnstileWidget, turnstileSiteKey } from "@/components/turnstile";
 import { createAttempt, readAttempt, type Attempt } from "@/lib/attempt";
 import { PageTitle, useI18n } from "@/lib/i18n";
+import { verifyTurnstileToken } from "@/lib/registry";
 
 export const Route = createFileRoute("/exam/")({
   head: () => ({
@@ -23,6 +24,7 @@ function ExamLanding() {
   const [token, setToken] = useState("");
   const [error, setError] = useState("");
   const [existing, setExisting] = useState<Attempt | null>(null);
+  const [starting, setStarting] = useState(false);
   const siteKey = turnstileSiteKey();
 
   useEffect(() => {
@@ -30,6 +32,7 @@ function ExamLanding() {
   }, []);
 
   const start = () => {
+    if (starting) return;
     if (name.trim().length < 2) {
       setError(t("exam.needName"));
       return;
@@ -38,8 +41,20 @@ function ExamLanding() {
       setError(t("exam.turnstile"));
       return;
     }
-    createAttempt(name);
-    void navigate({ to: "/exam/session" });
+    setStarting(true);
+    setError("");
+    void (async () => {
+      if (token) {
+        const verdict = await verifyTurnstileToken(token);
+        if (verdict === "rejected") {
+          setError(t("exam.turnstileRejected"));
+          setStarting(false);
+          return;
+        }
+      }
+      createAttempt(name, token);
+      void navigate({ to: "/exam/session" });
+    })();
   };
 
   return (
@@ -93,7 +108,8 @@ function ExamLanding() {
         type="button"
         data-testid="start-exam"
         onClick={start}
-        className="mt-6 rounded-full bg-primary px-5 py-2.5 text-sm text-primary-foreground"
+        disabled={starting}
+        className="mt-6 rounded-full bg-primary px-5 py-2.5 text-sm text-primary-foreground disabled:opacity-50"
       >
         {t("exam.start")}
       </button>
