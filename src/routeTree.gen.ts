@@ -10,33 +10,207 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CertificateRouteImport } from './routes/certificate'
+import { Route as FeedDotjsonRouteImport } from './routes/feed[.]json'
+import { Route as RssDotxmlRouteImport } from './routes/rss[.]xml'
+import { Route as BlogIndexRouteImport } from './routes/blog/index'
+import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
+import { Route as CoursesIndexRouteImport } from './routes/courses/index'
+import { Route as ExamIndexRouteImport } from './routes/exam/index'
+import { Route as ExamResultRouteImport } from './routes/exam/result'
+import { Route as ExamSessionRouteImport } from './routes/exam/session'
+import { Route as VerifyIdRouteImport } from './routes/verify/$id'
+import { Route as BlogTagsTagRouteImport } from './routes/blog/tags/$tag'
+import { Route as CoursesCourseIdIndexRouteImport } from './routes/courses/$courseId/index'
+import { Route as CoursesCourseIdLessonsLessonIdRouteImport } from './routes/courses/$courseId/lessons/$lessonId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CertificateRoute = CertificateRouteImport.update({
+  id: '/certificate',
+  path: '/certificate',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeedDotjsonRoute = FeedDotjsonRouteImport.update({
+  id: '/feed.json',
+  path: '/feed.json',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RssDotxmlRoute = RssDotxmlRouteImport.update({
+  id: '/rss.xml',
+  path: '/rss.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogIndexRoute = BlogIndexRouteImport.update({
+  id: '/blog/',
+  path: '/blog/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/blog/$slug',
+  path: '/blog/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CoursesIndexRoute = CoursesIndexRouteImport.update({
+  id: '/courses/',
+  path: '/courses/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExamIndexRoute = ExamIndexRouteImport.update({
+  id: '/exam/',
+  path: '/exam/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExamResultRoute = ExamResultRouteImport.update({
+  id: '/exam/result',
+  path: '/exam/result',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExamSessionRoute = ExamSessionRouteImport.update({
+  id: '/exam/session',
+  path: '/exam/session',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerifyIdRoute = VerifyIdRouteImport.update({
+  id: '/verify/$id',
+  path: '/verify/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogTagsTagRoute = BlogTagsTagRouteImport.update({
+  id: '/blog/tags/$tag',
+  path: '/blog/tags/$tag',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CoursesCourseIdIndexRoute = CoursesCourseIdIndexRouteImport.update({
+  id: '/courses/$courseId/',
+  path: '/courses/$courseId/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CoursesCourseIdLessonsLessonIdRoute =
+  CoursesCourseIdLessonsLessonIdRouteImport.update({
+    id: '/courses/$courseId/lessons/$lessonId',
+    path: '/courses/$courseId/lessons/$lessonId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/certificate': typeof CertificateRoute
+  '/feed.json': typeof FeedDotjsonRoute
+  '/rss.xml': typeof RssDotxmlRoute
+  '/blog/$slug': typeof BlogSlugRoute
+  '/exam/result': typeof ExamResultRoute
+  '/exam/session': typeof ExamSessionRoute
+  '/verify/$id': typeof VerifyIdRoute
+  '/blog/': typeof BlogIndexRoute
+  '/courses/': typeof CoursesIndexRoute
+  '/exam/': typeof ExamIndexRoute
+  '/blog/tags/$tag': typeof BlogTagsTagRoute
+  '/courses/$courseId/': typeof CoursesCourseIdIndexRoute
+  '/courses/$courseId/lessons/$lessonId': typeof CoursesCourseIdLessonsLessonIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/certificate': typeof CertificateRoute
+  '/feed.json': typeof FeedDotjsonRoute
+  '/rss.xml': typeof RssDotxmlRoute
+  '/blog/$slug': typeof BlogSlugRoute
+  '/exam/result': typeof ExamResultRoute
+  '/exam/session': typeof ExamSessionRoute
+  '/verify/$id': typeof VerifyIdRoute
+  '/blog': typeof BlogIndexRoute
+  '/courses': typeof CoursesIndexRoute
+  '/exam': typeof ExamIndexRoute
+  '/blog/tags/$tag': typeof BlogTagsTagRoute
+  '/courses/$courseId': typeof CoursesCourseIdIndexRoute
+  '/courses/$courseId/lessons/$lessonId': typeof CoursesCourseIdLessonsLessonIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/certificate': typeof CertificateRoute
+  '/feed.json': typeof FeedDotjsonRoute
+  '/rss.xml': typeof RssDotxmlRoute
+  '/blog/$slug': typeof BlogSlugRoute
+  '/exam/result': typeof ExamResultRoute
+  '/exam/session': typeof ExamSessionRoute
+  '/verify/$id': typeof VerifyIdRoute
+  '/blog/': typeof BlogIndexRoute
+  '/courses/': typeof CoursesIndexRoute
+  '/exam/': typeof ExamIndexRoute
+  '/blog/tags/$tag': typeof BlogTagsTagRoute
+  '/courses/$courseId/': typeof CoursesCourseIdIndexRoute
+  '/courses/$courseId/lessons/$lessonId': typeof CoursesCourseIdLessonsLessonIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/certificate'
+    | '/feed.json'
+    | '/rss.xml'
+    | '/blog/$slug'
+    | '/exam/result'
+    | '/exam/session'
+    | '/verify/$id'
+    | '/blog/'
+    | '/courses/'
+    | '/exam/'
+    | '/blog/tags/$tag'
+    | '/courses/$courseId/'
+    | '/courses/$courseId/lessons/$lessonId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/certificate'
+    | '/feed.json'
+    | '/rss.xml'
+    | '/blog/$slug'
+    | '/exam/result'
+    | '/exam/session'
+    | '/verify/$id'
+    | '/blog'
+    | '/courses'
+    | '/exam'
+    | '/blog/tags/$tag'
+    | '/courses/$courseId'
+    | '/courses/$courseId/lessons/$lessonId'
+  id:
+    | '__root__'
+    | '/'
+    | '/certificate'
+    | '/feed.json'
+    | '/rss.xml'
+    | '/blog/$slug'
+    | '/exam/result'
+    | '/exam/session'
+    | '/verify/$id'
+    | '/blog/'
+    | '/courses/'
+    | '/exam/'
+    | '/blog/tags/$tag'
+    | '/courses/$courseId/'
+    | '/courses/$courseId/lessons/$lessonId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CertificateRoute: typeof CertificateRoute
+  FeedDotjsonRoute: typeof FeedDotjsonRoute
+  RssDotxmlRoute: typeof RssDotxmlRoute
+  BlogSlugRoute: typeof BlogSlugRoute
+  ExamResultRoute: typeof ExamResultRoute
+  ExamSessionRoute: typeof ExamSessionRoute
+  VerifyIdRoute: typeof VerifyIdRoute
+  BlogIndexRoute: typeof BlogIndexRoute
+  CoursesIndexRoute: typeof CoursesIndexRoute
+  ExamIndexRoute: typeof ExamIndexRoute
+  BlogTagsTagRoute: typeof BlogTagsTagRoute
+  CoursesCourseIdIndexRoute: typeof CoursesCourseIdIndexRoute
+  CoursesCourseIdLessonsLessonIdRoute: typeof CoursesCourseIdLessonsLessonIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +222,115 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/certificate': {
+      id: '/certificate'
+      path: '/certificate'
+      fullPath: '/certificate'
+      preLoaderRoute: typeof CertificateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/feed.json': {
+      id: '/feed.json'
+      path: '/feed.json'
+      fullPath: '/feed.json'
+      preLoaderRoute: typeof FeedDotjsonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rss.xml': {
+      id: '/rss.xml'
+      path: '/rss.xml'
+      fullPath: '/rss.xml'
+      preLoaderRoute: typeof RssDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/': {
+      id: '/blog/'
+      path: '/blog'
+      fullPath: '/blog/'
+      preLoaderRoute: typeof BlogIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/blog/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/courses/': {
+      id: '/courses/'
+      path: '/courses'
+      fullPath: '/courses/'
+      preLoaderRoute: typeof CoursesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/exam/': {
+      id: '/exam/'
+      path: '/exam'
+      fullPath: '/exam/'
+      preLoaderRoute: typeof ExamIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/exam/result': {
+      id: '/exam/result'
+      path: '/exam/result'
+      fullPath: '/exam/result'
+      preLoaderRoute: typeof ExamResultRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/exam/session': {
+      id: '/exam/session'
+      path: '/exam/session'
+      fullPath: '/exam/session'
+      preLoaderRoute: typeof ExamSessionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verify/$id': {
+      id: '/verify/$id'
+      path: '/verify/$id'
+      fullPath: '/verify/$id'
+      preLoaderRoute: typeof VerifyIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/tags/$tag': {
+      id: '/blog/tags/$tag'
+      path: '/blog/tags/$tag'
+      fullPath: '/blog/tags/$tag'
+      preLoaderRoute: typeof BlogTagsTagRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/courses/$courseId/': {
+      id: '/courses/$courseId/'
+      path: '/courses/$courseId'
+      fullPath: '/courses/$courseId/'
+      preLoaderRoute: typeof CoursesCourseIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/courses/$courseId/lessons/$lessonId': {
+      id: '/courses/$courseId/lessons/$lessonId'
+      path: '/courses/$courseId/lessons/$lessonId'
+      fullPath: '/courses/$courseId/lessons/$lessonId'
+      preLoaderRoute: typeof CoursesCourseIdLessonsLessonIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CertificateRoute: CertificateRoute,
+  FeedDotjsonRoute: FeedDotjsonRoute,
+  RssDotxmlRoute: RssDotxmlRoute,
+  BlogSlugRoute: BlogSlugRoute,
+  ExamResultRoute: ExamResultRoute,
+  ExamSessionRoute: ExamSessionRoute,
+  VerifyIdRoute: VerifyIdRoute,
+  BlogIndexRoute: BlogIndexRoute,
+  CoursesIndexRoute: CoursesIndexRoute,
+  ExamIndexRoute: ExamIndexRoute,
+  BlogTagsTagRoute: BlogTagsTagRoute,
+  CoursesCourseIdIndexRoute: CoursesCourseIdIndexRoute,
+  CoursesCourseIdLessonsLessonIdRoute: CoursesCourseIdLessonsLessonIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
