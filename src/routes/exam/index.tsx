@@ -5,13 +5,22 @@ import { TurnstileWidget, turnstileSiteKey } from "@/components/turnstile";
 import { createAttempt, readAttempt, type Attempt } from "@/lib/attempt";
 import { PageTitle, useI18n } from "@/lib/i18n";
 import { verifyTurnstileToken } from "@/lib/registry";
+import { EXAM_OG_IMAGE } from "@/lib/site";
+
+const EXAM_DESCRIPTION = "Twenty questions, thirty minutes, eighty percent to pass.";
 
 export const Route = createFileRoute("/exam/")({
   head: () => ({
     meta: [
       { title: "Exam — SuperChoice AI" },
-      { name: "description", content: "Twenty questions, thirty minutes, eighty percent to pass." },
+      { name: "description", content: EXAM_DESCRIPTION },
       { property: "og:title", content: "pstack Fundamentals exam — SuperChoice AI" },
+      { property: "og:description", content: EXAM_DESCRIPTION },
+      { property: "og:image", content: EXAM_OG_IMAGE },
+      { property: "og:image:alt", content: "Sample certificate" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:image", content: EXAM_OG_IMAGE },
+      { name: "twitter:image:alt", content: "Sample certificate" },
     ],
   }),
   component: ExamLanding,

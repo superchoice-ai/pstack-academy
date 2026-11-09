@@ -3,13 +3,20 @@ import { Link, createFileRoute, notFound } from "@tanstack/react-router";
 import { listLessons } from "@/lib/content";
 import { fill } from "@/lib/format";
 import { PageTitle, useI18n } from "@/lib/i18n";
+import { DEFAULT_OG_IMAGE } from "@/lib/site";
+
+const COURSE_DESCRIPTION = "Two lessons and an exam for a community certificate.";
 
 export const Route = createFileRoute("/courses/$courseId/")({
   head: () => ({
     meta: [
       { title: "pstack Fundamentals — SuperChoice AI" },
-      { name: "description", content: "Two lessons and an exam for a community certificate." },
+      { name: "description", content: COURSE_DESCRIPTION },
       { property: "og:title", content: "pstack Fundamentals — SuperChoice AI" },
+      { property: "og:description", content: COURSE_DESCRIPTION },
+      { property: "og:image", content: DEFAULT_OG_IMAGE },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:image", content: DEFAULT_OG_IMAGE },
     ],
   }),
   component: CoursePage,
