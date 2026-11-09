@@ -14,6 +14,7 @@ import { SiteFooter } from "../components/site-footer";
 import { SiteHeader } from "../components/site-header";
 import { LanguageProvider, useI18n } from "../lib/i18n";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { DEFAULT_OG_IMAGE } from "../lib/site";
 import appCss from "../styles.css?url";
 
 function NotFoundComponent() {
@@ -80,7 +81,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content: "Essays, a free pstack course, and a community certificate.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:image", content: DEFAULT_OG_IMAGE },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:image", content: DEFAULT_OG_IMAGE },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
