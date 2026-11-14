@@ -98,6 +98,207 @@ bunx wrangler deploy
 
 `wrangler.toml` already names the worker `pstack-academy-api`, sets the account id, and binds D1 database `pstack-academy` as `DB`. Leave `TURNSTILE_SECRET_KEY` unset until the Turnstile secret exists: Siteverify is skipped and certificate registration still works. The secret is not stored in the repo. CORS allows `https://superchoice-academy-portal.lovable.app` plus `localhost` and `127.0.0.1`.
 
+## Leads pipeline
+
+`leads/` is a second Cloudflare Worker, `superchoice-leads`. It is the log for the assistant that researches Thai businesses and sends cold email from `superchoice@hotmail.com`. It is not part of the Lovable or Vite build, and it does not change `worker/` (pstack Academy certificates, CORS, or `TURNSTILE_SECRET_KEY`).
+
+It binds the same D1 database (`pstack-academy`, id `836e0f89-d175-44fd-9a9d-22f5e4141e93`) as `DB`. Its migrations live in `leads/migrations` and are recorded in a separate table, `leads_migrations`, so applying them does not rewrite the academy migration history. The migration adds `leads`, `touches`, and `opt_outs`. It does not alter `certificates`.
+
+Days and “today” use `Asia/Bangkok`.
+
+### Dedupe and opt-out
+
+- The same email updates one lead.
+- A company domain (the website host, or the email domain when it is not a public mailbox or a social host such as Facebook or LINE) also matches one lead. A second address at that domain is returned as `duplicate` and is not stored.
+- `gmail.com`, `hotmail.com`, and the other public mailbox domains in `leads/src/constants.ts` do not collapse unrelated people into one lead, and opting out one of those addresses does not suppress the whole provider.
+- Opting out a company address also suppresses that company domain. Later sends to another person at the same domain are rejected.
+- The opt-out row stays even if someone moves the lead’s status off `opted_out`. Outbound logging still returns `opted_out`.
+- Every email should include that lead’s `unsubscribe_url`. The public page confirms in Thai and English. `POST` to the same path is the one-click unsubscribe.
+
+### Status
+
+`new` → `contacted` → `replied` → `talking` → `proposal` → `won`, plus `lost`, `opted_out`, and `bounced`.
+
+An outbound touch moves `new` to `contacted`. An inbound touch moves `new` or `contacted` to `replied`. Other stages are set with `PATCH`. Bulk upsert does not change status.
+
+### Secrets and local checks
+
+From `leads/`:
+
+```sh
+bun install
+bun test
+bun run typecheck
+bunx wrangler d1 migrations apply pstack-academy --local
+```
+
+Create `leads/.dev.vars` (gitignored) from `leads/.dev.vars.example`. Wrangler reads it for `wrangler dev`. Do not commit the values.
+
+```sh
+bunx wrangler secret put LEADS_API_TOKEN
+bunx wrangler secret put LEADS_UNSUBSCRIBE_SECRET
+```
+
+Each command prompts and reads the secret from the terminal. `LEADS_API_TOKEN` is the bearer token for the JSON API and the dashboard login. `LEADS_UNSUBSCRIBE_SECRET` signs `/u/<token>` links. Rotating the unsubscribe secret breaks links already placed in sent mail, so keep it stable. The API returns `503 not_configured` until both are set, so it cannot store a lead it cannot give an opt-out link for.
+
+`bunx wrangler dev` serves the API locally. The dashboard is a page in this Lovable app, not a page on the worker.
+
+```sh
+VITE_LEADS_API_BASE=http://127.0.0.1:8787 bun run dev
+```
+
+Open `/leads`. Paste `LEADS_API_TOKEN` into the login form. The token stays in `sessionStorage` for that tab and is never written into the frontend bundle. If `VITE_LEADS_API_BASE` is unset, the app calls `https://superchoice-leads.auichai-s2.workers.dev`. `VITE_API_BASE` is still only the academy certificate API.
+
+The worker allows browser calls from `https://*.lovable.app` and from `localhost` / `127.0.0.1`, including the `Authorization` header. Unsubscribe pages stay on the worker at `/u/<token>`.
+
+Login is that bearer token. Cloudflare Access is optional and is not required to deploy. If you put Access on the workers.dev hostname, add a bypass for `/api/*` (the mail agent and the Lovable page use the bearer token) and for `/u/*` (the unsubscribe link has to work without an Access login).
+
+### Deploy
+
+Do this from `leads/` after `bunx wrangler login`. Do not deploy `worker/` as part of this change, and do not point this worker at a new D1 database.
+
+```sh
+bunx wrangler d1 migrations apply pstack-academy --remote
+bunx wrangler secret put LEADS_API_TOKEN
+bunx wrangler secret put LEADS_UNSUBSCRIBE_SECRET
+bunx wrangler deploy
+```
+
+`wrangler deploy` prints the workers.dev host. The dashboard path on this site is `/leads`. The mail agent must call the worker's public origin: unsubscribe links are built from the request host.
+
+Bindings to set: D1 `DB` → existing database `pstack-academy`. Secrets: `LEADS_API_TOKEN`, `LEADS_UNSUBSCRIBE_SECRET`. No new database. Academy worker bindings stay as they are.
+
+### API
+
+Send `Authorization: Bearer <LEADS_API_TOKEN>` and `Content-Type: application/json`. Replace the host below with the deploy output. At most 100 leads, emails, or domains per call. Body limit is 1 MB.
+
+```sh
+HOST=https://superchoice-leads.auichai-s2.workers.dev
+TOKEN=your-leads-api-token
+```
+
+Upsert. Same email updates. Same company domain returns `duplicate`. An opted-out email or domain returns `skipped`.
+
+```sh
+curl -s -X POST "$HOST/api/leads/upsert" \
+  -H "authorization: Bearer $TOKEN" \
+  -H "content-type: application/json" \
+  -d '{
+    "leads": [{
+      "business_name": "ร้านกาแฟตัวอย่าง",
+      "industry": "คาเฟ่",
+      "website": "https://example.co.th",
+      "email": "owner@example.co.th",
+      "phone": "0812345678",
+      "line_id": "@example",
+      "source_url": "https://example.co.th/contact",
+      "fit_score": 80,
+      "notes": "เปิดสาขาใหม่",
+      "pain_point": "ไม่มีระบบจอง"
+    }]
+  }'
+```
+
+Check before sending. Do not send when `opted_out` or `bounced` is true. `contacted` means a lead is already in the pipeline.
+
+```sh
+curl -s -X POST "$HOST/api/leads/check" \
+  -H "authorization: Bearer $TOKEN" \
+  -H "content-type: application/json" \
+  -d '{"emails":["owner@example.co.th"],"domains":["example.co.th"]}'
+```
+
+Unsubscribe URL for the email footer. Also included on upsert, list, and lead detail.
+
+```sh
+curl -s "$HOST/api/leads/LEAD_ID/unsubscribe-url" \
+  -H "authorization: Bearer $TOKEN"
+```
+
+Log a send or a reply. Repeat the same `client_ref` to retry without a second row. `sent_at` is optional ISO-8601.
+
+```sh
+curl -s -X POST "$HOST/api/touches" \
+  -H "authorization: Bearer $TOKEN" \
+  -H "content-type: application/json" \
+  -d '{
+    "lead_id": "LEAD_ID",
+    "channel": "email",
+    "direction": "outbound",
+    "subject": "เว็บแอพสำหรับร้าน",
+    "summary": "จองคิวและไลน์",
+    "client_ref": "2026-11-14-owner@example.co.th"
+  }'
+```
+
+`channel` is `email` or `line`. `direction` is `outbound` or `inbound`.
+
+Update status or notes:
+
+```sh
+curl -s -X PATCH "$HOST/api/leads/LEAD_ID" \
+  -H "authorization: Bearer $TOKEN" \
+  -H "content-type: application/json" \
+  -d '{"status":"talking","notes":"นัดวันศุกร์"}'
+```
+
+List and stats:
+
+```sh
+curl -s "$HOST/api/leads?status=replied&q=กาแฟ&limit=50&offset=0" \
+  -H "authorization: Bearer $TOKEN"
+curl -s "$HOST/api/stats" -H "authorization: Bearer $TOKEN"
+curl -s "$HOST/api/stats/daily?date=2026-11-14" -H "authorization: Bearer $TOKEN"
+```
+
+Record an opt-out that arrived as a reply instead of a link click. A public mailbox domain such as `gmail.com` is rejected.
+
+```sh
+curl -s -X POST "$HOST/api/opt-outs" \
+  -H "authorization: Bearer $TOKEN" \
+  -H "content-type: application/json" \
+  -d '{"email":"owner@example.co.th"}'
+```
+
+Public unsubscribe (no bearer token): `GET` or `POST /u/<token>`.
+
+Dashboard: `/leads` in this app (phone, iPad, and desktop). It shows funnel counts, sends today, reply rate, a filterable lead list, and a lead page for status, notes, and touch history. The worker does not serve that HTML.
+
+### CSV import
+
+`POST /api/leads/import` loads a send log. The header row is exactly:
+
+```text
+date,business,industry,email,website,source_url,reason,status,subject
+```
+
+`status` is `queued`, `sent`, `failed`, or `bounced`. `date` is `YYYY-MM-DD` (noon Thailand time) or a timestamp. `reason` is stored as the pain point.
+
+| CSV status | Lead status | Touch |
+| --- | --- | --- |
+| queued | `new` | none |
+| sent | `contacted` if it was `new` | outbound email |
+| failed | unchanged, note `ส่งไม่สำเร็จ` | none |
+| bounced | `bounced` | outbound email |
+
+Sending the same file again does not add a second touch. A bounced address then rejects outbound logging. `leads/sample-sends.csv` is a fictional sample in this shape.
+
+```sh
+curl -s -X POST "$HOST/api/leads/import" \
+  -H "authorization: Bearer $TOKEN" \
+  -H "content-type: text/csv" \
+  --data-binary @leads/sample-sends.csv
+```
+
+From `leads/`, with the worker already running:
+
+```sh
+LEADS_API_BASE="$HOST" LEADS_API_TOKEN="$TOKEN" bun scripts/import-csv.ts ./your-sends.csv
+LEADS_API_BASE=http://127.0.0.1:8787 LEADS_API_TOKEN="$TOKEN" bun run seed
+```
+
+`bun run seed` imports the sample file, then marks a few leads as replied, talking, proposal, or won so the dashboard funnel is not only “sent”.
+
 ## Roadmap
 
 - Exam sessions still live in the browser. A later step can move the question draw onto the worker.

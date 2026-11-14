@@ -1,0 +1,13 @@
+date,business,industry,email,website,source_url,reason,status,subject
+2026-11-10,ร้านกาแฟริมน้ำเจ้าพระยา,คาเฟ่,owner@rimnam.example.co.th,https://rimnam.example.co.th,https://rimnam.example.co.th/contact,ลูกค้าโทรจองแล้วสายไม่ว่าง ไม่มีระบบคิว,sent,เว็บจองคิวสำหรับร้านกาแฟริมน้ำ
+2026-11-10,อู่ซ่อมรถพระราม 3,อู่ซ่อมรถ,service@rama3-garage.example.co.th,https://rama3-garage.example.co.th,https://rama3-garage.example.co.th,นัดหมายลูกค้าอยู่ในไลน์ส่วนตัว งานหลุดบ่อย,sent,ระบบนัดหมายอู่ซ่อมรถ
+2026-11-11,คลินิกทันตกรรมสยาม,คลินิก,hello@siam-dental.example.co.th,https://siam-dental.example.co.th,https://siam-dental.example.co.th,คนไข้ถามคิวซ้ำทุกวัน ยังใช้สมุดนัด,sent,คิวนัดคนไข้บนไลน์
+2026-11-11,โรงแรมบ้านสวนเชียงใหม่,โรงแรม,stay@baansuan-cm.example.co.th,https://baansuan-cm.example.co.th,https://baansuan-cm.example.co.th,จองห้องทางแชทแล้วไม่มีใบยืนยัน,sent,หน้าจองห้องที่เชื่อมไลน์
+2026-11-12,ร้านดอกไม้ปากคลอง,ร้านดอกไม้,hello@pakkhlong-flowers.example.co.th,https://pakkhlong-flowers.example.co.th,https://pakkhlong-flowers.example.co.th,ออเดอร์เทศกาลเต็มแต่รับออเดอร์ในแชทอย่างเดียว,queued,รับออเดอร์ดอกไม้ล่วงหน้า
+2026-11-12,โรงเรียนสอนภาษาใกล้บ้าน,สอนภาษา,admin@near-language.example.co.th,https://near-language.example.co.th,https://near-language.example.co.th,ผู้ปกครองทวงตารางเรียนทางไลน์,queued,ตารางเรียนและแจ้งผู้ปกครอง
+2026-11-12,บริษัทแม่บ้านสะอาด,บริการทำความสะอาด,book@sa-ard.example.co.th,https://sa-ard.example.co.th,https://sa-ard.example.co.th,ลูกค้าถามคิวซ้ำ เพราะไม่มีหน้าจอง,failed,จองคิวแม่บ้านออนไลน์
+2026-11-13,ร้านอาหารอีสานบ้านนา,ร้านอาหาร,owner@bannaa-isan.example.co.th,https://bannaa-isan.example.co.th,https://bannaa-isan.example.co.th,ออเดอร์โทรเข้าแล้วครัวจดไม่ทัน,bounced,เมนูและออเดอร์หน้าร้าน
+2026-11-13,ฟิตเนสชุมชนลาดพร้าว,ฟิตเนส,hello@ladprao-fit.example.co.th,https://ladprao-fit.example.co.th,https://ladprao-fit.example.co.th,สมาชิกต่ออายุแล้วไม่มีระบบเตือน,sent,ต่ออายุสมาชิกและจองคลาส
+2026-11-13,ร้านขายต้นไม้ออนไลน์,ร้านต้นไม้,shop@tonmai-online.example.co.th,https://tonmai-online.example.co.th,https://tonmai-online.example.co.th,ลูกค้าถามสต็อกทางแชททั้งวัน,queued,เช็คสต็อกต้นไม้แล้วสั่งได้เลย
+2026-11-14,ร้านเบเกอรี่สุขุมวิท,เบเกอรี่,hello@suk-bakery.example.co.th,https://suk-bakery.example.co.th,https://suk-bakery.example.co.th,พรีออเดอร์เค้กเต็มแต่รับในไลน์อย่างเดียว,sent,พรีออเดอร์เค้กไม่ให้หลุดออเดอร์
+2026-11-14,คลินิกสัตว์เลี้ยงทองหล่อ,สัตวแพทย์,care@thonglor-pets.example.co.th,https://thonglor-pets.example.co.th,https://thonglor-pets.example.co.th,คิวนัดฉีดวัคซีนกระจายหลายแชท,failed,นัดหมายคลินิกสัตว์เลี้ยง

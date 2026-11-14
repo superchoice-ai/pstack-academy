@@ -1,0 +1,4 @@
+# Copy to .dev.vars for `wrangler dev`. Never commit .dev.vars.
+# Generate each value with: openssl rand -base64 32
+LEADS_API_TOKEN=
+LEADS_UNSUBSCRIBE_SECRET=

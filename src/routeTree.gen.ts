@@ -19,6 +19,8 @@ import { Route as CoursesIndexRouteImport } from './routes/courses/index'
 import { Route as ExamIndexRouteImport } from './routes/exam/index'
 import { Route as ExamResultRouteImport } from './routes/exam/result'
 import { Route as ExamSessionRouteImport } from './routes/exam/session'
+import { Route as LeadsIndexRouteImport } from './routes/leads/index'
+import { Route as LeadsIdRouteImport } from './routes/leads/$id'
 import { Route as VerifyIdRouteImport } from './routes/verify/$id'
 import { Route as BlogTagsTagRouteImport } from './routes/blog/tags/$tag'
 import { Route as CoursesCourseIdIndexRouteImport } from './routes/courses/$courseId/index'
@@ -74,6 +76,16 @@ const ExamSessionRoute = ExamSessionRouteImport.update({
   path: '/exam/session',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LeadsIndexRoute = LeadsIndexRouteImport.update({
+  id: '/leads/',
+  path: '/leads/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LeadsIdRoute = LeadsIdRouteImport.update({
+  id: '/leads/$id',
+  path: '/leads/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VerifyIdRoute = VerifyIdRouteImport.update({
   id: '/verify/$id',
   path: '/verify/$id',
@@ -104,10 +116,12 @@ export interface FileRoutesByFullPath {
   '/blog/$slug': typeof BlogSlugRoute
   '/exam/result': typeof ExamResultRoute
   '/exam/session': typeof ExamSessionRoute
+  '/leads/$id': typeof LeadsIdRoute
   '/verify/$id': typeof VerifyIdRoute
   '/blog/': typeof BlogIndexRoute
   '/courses/': typeof CoursesIndexRoute
   '/exam/': typeof ExamIndexRoute
+  '/leads/': typeof LeadsIndexRoute
   '/blog/tags/$tag': typeof BlogTagsTagRoute
   '/courses/$courseId/': typeof CoursesCourseIdIndexRoute
   '/courses/$courseId/lessons/$lessonId': typeof CoursesCourseIdLessonsLessonIdRoute
@@ -120,10 +134,12 @@ export interface FileRoutesByTo {
   '/blog/$slug': typeof BlogSlugRoute
   '/exam/result': typeof ExamResultRoute
   '/exam/session': typeof ExamSessionRoute
+  '/leads/$id': typeof LeadsIdRoute
   '/verify/$id': typeof VerifyIdRoute
   '/blog': typeof BlogIndexRoute
   '/courses': typeof CoursesIndexRoute
   '/exam': typeof ExamIndexRoute
+  '/leads': typeof LeadsIndexRoute
   '/blog/tags/$tag': typeof BlogTagsTagRoute
   '/courses/$courseId': typeof CoursesCourseIdIndexRoute
   '/courses/$courseId/lessons/$lessonId': typeof CoursesCourseIdLessonsLessonIdRoute
@@ -137,10 +153,12 @@ export interface FileRoutesById {
   '/blog/$slug': typeof BlogSlugRoute
   '/exam/result': typeof ExamResultRoute
   '/exam/session': typeof ExamSessionRoute
+  '/leads/$id': typeof LeadsIdRoute
   '/verify/$id': typeof VerifyIdRoute
   '/blog/': typeof BlogIndexRoute
   '/courses/': typeof CoursesIndexRoute
   '/exam/': typeof ExamIndexRoute
+  '/leads/': typeof LeadsIndexRoute
   '/blog/tags/$tag': typeof BlogTagsTagRoute
   '/courses/$courseId/': typeof CoursesCourseIdIndexRoute
   '/courses/$courseId/lessons/$lessonId': typeof CoursesCourseIdLessonsLessonIdRoute
@@ -155,10 +173,12 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/exam/result'
     | '/exam/session'
+    | '/leads/$id'
     | '/verify/$id'
     | '/blog/'
     | '/courses/'
     | '/exam/'
+    | '/leads/'
     | '/blog/tags/$tag'
     | '/courses/$courseId/'
     | '/courses/$courseId/lessons/$lessonId'
@@ -171,10 +191,12 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/exam/result'
     | '/exam/session'
+    | '/leads/$id'
     | '/verify/$id'
     | '/blog'
     | '/courses'
     | '/exam'
+    | '/leads'
     | '/blog/tags/$tag'
     | '/courses/$courseId'
     | '/courses/$courseId/lessons/$lessonId'
@@ -187,10 +209,12 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/exam/result'
     | '/exam/session'
+    | '/leads/$id'
     | '/verify/$id'
     | '/blog/'
     | '/courses/'
     | '/exam/'
+    | '/leads/'
     | '/blog/tags/$tag'
     | '/courses/$courseId/'
     | '/courses/$courseId/lessons/$lessonId'
@@ -204,10 +228,12 @@ export interface RootRouteChildren {
   BlogSlugRoute: typeof BlogSlugRoute
   ExamResultRoute: typeof ExamResultRoute
   ExamSessionRoute: typeof ExamSessionRoute
+  LeadsIdRoute: typeof LeadsIdRoute
   VerifyIdRoute: typeof VerifyIdRoute
   BlogIndexRoute: typeof BlogIndexRoute
   CoursesIndexRoute: typeof CoursesIndexRoute
   ExamIndexRoute: typeof ExamIndexRoute
+  LeadsIndexRoute: typeof LeadsIndexRoute
   BlogTagsTagRoute: typeof BlogTagsTagRoute
   CoursesCourseIdIndexRoute: typeof CoursesCourseIdIndexRoute
   CoursesCourseIdLessonsLessonIdRoute: typeof CoursesCourseIdLessonsLessonIdRoute
@@ -285,6 +311,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExamSessionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/leads/': {
+      id: '/leads/'
+      path: '/leads'
+      fullPath: '/leads/'
+      preLoaderRoute: typeof LeadsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/leads/$id': {
+      id: '/leads/$id'
+      path: '/leads/$id'
+      fullPath: '/leads/$id'
+      preLoaderRoute: typeof LeadsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/verify/$id': {
       id: '/verify/$id'
       path: '/verify/$id'
@@ -324,10 +364,12 @@ const rootRouteChildren: RootRouteChildren = {
   BlogSlugRoute: BlogSlugRoute,
   ExamResultRoute: ExamResultRoute,
   ExamSessionRoute: ExamSessionRoute,
+  LeadsIdRoute: LeadsIdRoute,
   VerifyIdRoute: VerifyIdRoute,
   BlogIndexRoute: BlogIndexRoute,
   CoursesIndexRoute: CoursesIndexRoute,
   ExamIndexRoute: ExamIndexRoute,
+  LeadsIndexRoute: LeadsIndexRoute,
   BlogTagsTagRoute: BlogTagsTagRoute,
   CoursesCourseIdIndexRoute: CoursesCourseIdIndexRoute,
   CoursesCourseIdLessonsLessonIdRoute: CoursesCourseIdLessonsLessonIdRoute,

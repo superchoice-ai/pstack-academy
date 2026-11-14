@@ -1,0 +1,34 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "superchoice-leads",
+  "account_id": "496494538991c7ddb3009232a1102139",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-11-14",
+  "compatibility_flags": ["nodejs_compat"],
+  "upload_source_maps": true,
+  // Separate from pstack-academy-api so certificate routes, CORS, and
+  // TURNSTILE_SECRET_KEY stay untouched. Same D1 database, own migration table.
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+    },
+    "traces": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+    },
+  },
+  "secrets": {
+    "required": ["LEADS_API_TOKEN", "LEADS_UNSUBSCRIBE_SECRET"],
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "pstack-academy",
+      "database_id": "836e0f89-d175-44fd-9a9d-22f5e4141e93",
+      "migrations_dir": "migrations",
+      "migrations_table": "leads_migrations",
+    },
+  ],
+}
