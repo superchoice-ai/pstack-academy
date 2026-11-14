@@ -141,9 +141,17 @@ bunx wrangler secret put LEADS_UNSUBSCRIBE_SECRET
 
 Each command prompts and reads the secret from the terminal. `LEADS_API_TOKEN` is the bearer token for the JSON API and the dashboard login. `LEADS_UNSUBSCRIBE_SECRET` signs `/u/<token>` links. Rotating the unsubscribe secret breaks links already placed in sent mail, so keep it stable. The API returns `503 not_configured` until both are set, so it cannot store a lead it cannot give an opt-out link for.
 
-`bunx wrangler dev` serves the worker locally. The dashboard is `http://localhost:8787/dashboard` (Wrangler prints the port). Paste `LEADS_API_TOKEN` into the login form. The token stays in `sessionStorage` for that tab.
+`bunx wrangler dev` serves the API locally. The dashboard is a page in this Lovable app, not a page on the worker.
 
-Login is that bearer token. Cloudflare Access is optional and is not required to deploy. If you put Access on the workers.dev hostname, add a bypass for `/api/*` (the mail agent uses the bearer token) and for `/u/*` (the unsubscribe link has to work without an Access login).
+```sh
+VITE_LEADS_API_BASE=http://127.0.0.1:8787 bun run dev
+```
+
+Open `/leads`. Paste `LEADS_API_TOKEN` into the login form. The token stays in `sessionStorage` for that tab and is never written into the frontend bundle. If `VITE_LEADS_API_BASE` is unset, the app calls `https://superchoice-leads.auichai-s2.workers.dev`. `VITE_API_BASE` is still only the academy certificate API.
+
+The worker allows browser calls from `https://*.lovable.app` and from `localhost` / `127.0.0.1`, including the `Authorization` header. Unsubscribe pages stay on the worker at `/u/<token>`.
+
+Login is that bearer token. Cloudflare Access is optional and is not required to deploy. If you put Access on the workers.dev hostname, add a bypass for `/api/*` (the mail agent and the Lovable page use the bearer token) and for `/u/*` (the unsubscribe link has to work without an Access login).
 
 ### Deploy
 
@@ -156,7 +164,7 @@ bunx wrangler secret put LEADS_UNSUBSCRIBE_SECRET
 bunx wrangler deploy
 ```
 
-`wrangler deploy` prints the workers.dev host. The dashboard path is `/dashboard`. The mail agent must call that public origin: unsubscribe links are built from the request host.
+`wrangler deploy` prints the workers.dev host. The dashboard path on this site is `/leads`. The mail agent must call the worker's public origin: unsubscribe links are built from the request host.
 
 Bindings to set: D1 `DB` → existing database `pstack-academy`. Secrets: `LEADS_API_TOKEN`, `LEADS_UNSUBSCRIBE_SECRET`. No new database. Academy worker bindings stay as they are.
 
@@ -254,7 +262,7 @@ curl -s -X POST "$HOST/api/opt-outs" \
 
 Public unsubscribe (no bearer token): `GET` or `POST /u/<token>`.
 
-Dashboard: `GET /dashboard`. The page is Thai, works on a phone, and shows funnel counts, today’s sends, reply rate, a filterable lead list, and inline status, notes, and touch history.
+Dashboard: `/leads` in this app (phone, iPad, and desktop). It shows funnel counts, sends today, reply rate, a filterable lead list, and a lead page for status, notes, and touch history. The worker does not serve that HTML.
 
 ### CSV import
 

@@ -61,7 +61,12 @@ async function reply(id: string, subject: string, summary: string, sentAt: strin
 
 const cafe = await leadId("owner@rimnam.example.co.th");
 await patch(cafe, { fit_score: 88, status: "talking", notes: "นัดวันศุกร์บ่าย ดูระบบจองคิว" });
-await reply(cafe, "Re: เว็บจองคิวสำหรับร้านกาแฟริมน้ำ", "สนใจ ขอนัดคุยวันศุกร์", "2026-11-14T02:30:00.000Z");
+await reply(
+  cafe,
+  "Re: เว็บจองคิวสำหรับร้านกาแฟริมน้ำ",
+  "สนใจ ขอนัดคุยวันศุกร์",
+  "2026-11-14T02:30:00.000Z",
+);
 
 const dental = await leadId("hello@siam-dental.example.co.th");
 await patch(dental, { fit_score: 91, status: "proposal", notes: "ส่งใบเสนอราคาคิวนัดคนไข้แล้ว" });
@@ -71,7 +76,12 @@ await patch(hotel, { fit_score: 84, status: "won", notes: "ปิดงานห
 
 const fitness = await leadId("hello@ladprao-fit.example.co.th");
 await patch(fitness, { fit_score: 76, status: "replied" });
-await reply(fitness, "Re: ต่ออายุสมาชิกและจองคลาส", "ขอรายละเอียดแพ็กเกจ", "2026-11-13T08:00:00.000Z");
+await reply(
+  fitness,
+  "Re: ต่ออายุสมาชิกและจองคลาส",
+  "ขอรายละเอียดแพ็กเกจ",
+  "2026-11-13T08:00:00.000Z",
+);
 
 await patch(await leadId("service@rama3-garage.example.co.th"), { fit_score: 73 });
 await patch(await leadId("hello@suk-bakery.example.co.th"), { fit_score: 80 });

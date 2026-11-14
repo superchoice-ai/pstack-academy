@@ -6,7 +6,6 @@ import { readFileSync } from "node:fs";
 
 import type { LeadDb } from "../src/db";
 import { handleRequest } from "../src/handler";
-import { STATUSES, STATUS_LABELS } from "../src/constants";
 import { signLeadId } from "../src/tokens";
 import { migrationSql, openTestDb } from "./d1";
 
@@ -162,24 +161,44 @@ describe("auth", () => {
     expect(((await listed.json()) as { total: number }).total).toBe(0);
   });
 
-  it("serves the dashboard and a service description without the token", async () => {
+  it("points the service description at the Lovable dashboard and does not serve HTML", async () => {
     const database = db();
     const home = await call(database, "/");
     expect(home.status).toBe(200);
     expect(await home.json()).toEqual({
       service: "superchoice-leads",
-      dashboard: "/dashboard",
+      dashboard: "https://superchoice-academy-portal.lovable.app/leads",
       unsubscribe: "/u/:token",
     });
     const page = await call(database, "/dashboard");
-    expect(page.status).toBe(200);
-    expect(page.headers.get("content-type")).toContain("text/html");
-    const html = await page.text();
-    expect(html).toContain("ไปป์ไลน์ลูกค้า");
-    expect(html).toContain("เข้าสู่ระบบ");
-    expect(html).toContain("อัตราตอบกลับ");
-    for (const status of STATUSES) expect(html).toContain(STATUS_LABELS[status]);
-    expect(html).not.toContain(TOKEN);
+    expect(page.status).toBe(404);
+  });
+
+  it("allows the Lovable app and localhost to call the API", async () => {
+    const database = db();
+    const lovable = "https://superchoice-academy-portal.lovable.app";
+    const preflight = await call(database, "/api/stats", {
+      method: "OPTIONS",
+      headers: { origin: lovable, "access-control-request-method": "GET" },
+    });
+    expect(preflight.status).toBe(204);
+    expect(preflight.headers.get("access-control-allow-origin")).toBe(lovable);
+    expect(preflight.headers.get("access-control-allow-headers")).toContain("authorization");
+
+    const local = await call(
+      database,
+      "/api/stats",
+      authed({ headers: { origin: "http://127.0.0.1:5173" } }),
+    );
+    expect(local.status).toBe(200);
+    expect(local.headers.get("access-control-allow-origin")).toBe("http://127.0.0.1:5173");
+
+    const denied = await call(database, "/api/stats", {
+      method: "OPTIONS",
+      headers: { origin: "https://evil.example" },
+    });
+    expect(denied.status).toBe(403);
+    expect(denied.headers.get("access-control-allow-origin")).toBeNull();
   });
 });
 

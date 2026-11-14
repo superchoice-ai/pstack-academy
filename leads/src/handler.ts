@@ -1,3 +1,4 @@
+import { allowedLeadsOrigin, withCors } from "./cors";
 import { parseSendCsv } from "./csv";
 import { isCompanyDomain, isPlatformHost, isPublicMailbox, isStatus, LIMITS } from "./constants";
 import type { LeadsEnv } from "./db";
@@ -11,7 +12,7 @@ import {
   parseTouch,
   showInput,
 } from "./normalize";
-import { dashboardPage, unsubscribePage } from "./pages";
+import { unsubscribePage } from "./pages";
 import {
   checkSuppression,
   dailyStats,
@@ -129,15 +130,35 @@ export async function handleRequest(
   const now = deps.now ?? (() => new Date());
   const nowIso = now().toISOString();
 
+  const origin = request.headers.get("origin");
+  const response = await route(request, env, url, path, nowIso, now);
+  if (request.method === "OPTIONS" || path === "/" || path.startsWith("/api/")) {
+    return withCors(response, origin);
+  }
+  return response;
+}
+
+async function route(
+  request: Request,
+  env: LeadsEnv,
+  url: URL,
+  path: string,
+  nowIso: string,
+  now: () => Date,
+): Promise<Response> {
+  const origin = request.headers.get("origin");
+  if (request.method === "OPTIONS" && (path === "/" || path.startsWith("/api/"))) {
+    if (!allowedLeadsOrigin(origin)) return new Response(null, { status: 403 });
+    return new Response(null, { status: 204 });
+  }
   if (path === "/favicon.ico") return new Response(null, { status: 204 });
   if (request.method === "GET" && path === "/") {
     return json({
       service: "superchoice-leads",
-      dashboard: "/dashboard",
+      dashboard: "https://superchoice-academy-portal.lovable.app/leads",
       unsubscribe: "/u/:token",
     });
   }
-  if (request.method === "GET" && path === "/dashboard") return html(dashboardPage());
   if (path.startsWith("/u/")) return unsubscribe(request, env, path.slice(3), nowIso);
   if (!path.startsWith("/api/")) return json({ error: "not_found" }, 404);
 
