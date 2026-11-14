@@ -1,0 +1,19 @@
+{
+  "name": "superchoice-leads",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "bun test",
+    "typecheck": "wrangler types && tsc --noEmit",
+    "dev": "wrangler dev",
+    "types": "wrangler types",
+    "migrate:local": "wrangler d1 migrations apply pstack-academy --local",
+    "migrate:remote": "wrangler d1 migrations apply pstack-academy --remote",
+    "import:csv": "bun scripts/import-csv.ts",
+    "seed": "bun scripts/seed.ts"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "wrangler": "^4.50.0"
+  }
+}
