@@ -60,7 +60,16 @@ export const LIMITS = {
   check: 100,
   bodyBytes: 1_000_000,
   page: 100,
+  lineUrl: 500,
 } as const;
+
+export const CHANNELS = ["email", "line", "imessage", "whatsapp"] as const;
+
+export type Channel = (typeof CHANNELS)[number];
+
+export function isChannel(value: unknown): value is Channel {
+  return typeof value === "string" && (CHANNELS as readonly string[]).includes(value);
+}
 
 /** Mailbox providers. Opting out one address must not suppress the whole provider. */
 export const PUBLIC_EMAIL_DOMAINS: ReadonlySet<string> = new Set([

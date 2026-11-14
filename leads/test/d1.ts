@@ -1,10 +1,20 @@
 import { Database } from "bun:sqlite";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 
 import type { BoundStatement, LeadDb, QueryResult, SqlValue } from "../src/db";
 
+export function migrationFiles(): { name: string; sql: string }[] {
+  const dir = new URL("../migrations/", import.meta.url);
+  return readdirSync(dir)
+    .filter((name) => name.endsWith(".sql"))
+    .sort()
+    .map((name) => ({ name, sql: readFileSync(new URL(name, dir), "utf8") }));
+}
+
 export function migrationSql(): string {
-  return readFileSync(new URL("../migrations/0001_leads.sql", import.meta.url), "utf8");
+  return migrationFiles()
+    .map((file) => file.sql)
+    .join("\n");
 }
 
 class SqliteStatement implements BoundStatement {
