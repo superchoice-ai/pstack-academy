@@ -28,13 +28,18 @@ function db() {
 
 function env(
   database: LeadDb,
-  overrides: { LEADS_API_TOKEN?: string; LEADS_UNSUBSCRIBE_SECRET?: string } = {},
+  overrides: {
+    LEADS_API_TOKEN?: string;
+    LEADS_UNSUBSCRIBE_SECRET?: string;
+    ASSETS?: { fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> };
+  } = {},
 ) {
   return {
     DB: database,
     LEADS_API_TOKEN: "LEADS_API_TOKEN" in overrides ? overrides.LEADS_API_TOKEN : TOKEN,
     LEADS_UNSUBSCRIBE_SECRET:
       "LEADS_UNSUBSCRIBE_SECRET" in overrides ? overrides.LEADS_UNSUBSCRIBE_SECRET : SECRET,
+    ASSETS: overrides.ASSETS,
   };
 }
 
@@ -42,7 +47,11 @@ function call(
   database: LeadDb,
   path: string,
   init: RequestInit = {},
-  overrides?: { LEADS_API_TOKEN?: string; LEADS_UNSUBSCRIBE_SECRET?: string },
+  overrides?: {
+    LEADS_API_TOKEN?: string;
+    LEADS_UNSUBSCRIBE_SECRET?: string;
+    ASSETS?: { fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> };
+  },
 ) {
   return handleRequest(
     new Request(`https://leads.example${path}`, init),
@@ -87,6 +96,31 @@ async function upsert(database: LeadDb, leads: Array<Record<string, unknown>>) {
     }),
   );
   return { response, body: (await response.json()) as { results: Array<Record<string, unknown>> } };
+}
+
+const PREVIEW_PNG = Uint8Array.from(
+  atob(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+  ),
+  (char) => char.charCodeAt(0),
+);
+
+function previewAssets(
+  files: Record<string, Uint8Array> = { "/p/buycarthailand.png": PREVIEW_PNG },
+) {
+  return {
+    fetch(input: RequestInfo | URL) {
+      const path = new URL(input instanceof Request ? input.url : input).pathname;
+      const body = files[path];
+      if (!body) return Promise.resolve(new Response(null, { status: 404 }));
+      return Promise.resolve(
+        new Response(body, {
+          status: 200,
+          headers: { "content-type": "image/png", "content-length": String(body.byteLength) },
+        }),
+      );
+    },
+  };
 }
 
 describe("migrations", () => {
@@ -624,9 +658,10 @@ describe("pipeline", () => {
       }),
     );
     expect(whatsapp.status).toBe(200);
-    expect(((await whatsapp.json()) as { touch: { channel: string }; lead: { status: string } }).touch.channel).toBe(
-      "whatsapp",
-    );
+    expect(
+      ((await whatsapp.json()) as { touch: { channel: string }; lead: { status: string } }).touch
+        .channel,
+    ).toBe("whatsapp");
 
     const bad = await call(
       database,
@@ -848,5 +883,47 @@ describe("csv import", () => {
     const name = ((await listed.json()) as { leads: Array<{ business_name: string }> }).leads[0]
       ?.business_name;
     expect(name).toBe("ร้านกาแฟ, สาขา 2");
+  });
+});
+
+describe("preview pages", () => {
+  it("serves a public Thai preview page with iMessage Open Graph tags", async () => {
+    const database = db();
+    const response = await call(database, "/p/buycarthailand");
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-type")).toContain("text/html");
+    const body = await response.text();
+    expect(body).toContain('<html lang="th">');
+    expect(body).toContain("BuycarThailand");
+    expect(body).toContain('property="og:title"');
+    expect(body).toContain('property="og:description"');
+    expect(body).toContain(
+      'property="og:image" content="https://leads.example/p/buycarthailand.png"',
+    );
+    expect(body).toContain('name="twitter:card" content="summary_large_image"');
+    expect(body).toContain("https://lin.ee/wNUnj5c");
+    expect(body).toContain("superchoice@hotmail.com");
+    expect(body).not.toContain("+66895320346");
+    expect(body).not.toContain("LEADS_API_TOKEN");
+    expect(body).not.toContain("unsubscribe");
+  });
+
+  it("serves the preview image without authentication", async () => {
+    const database = db();
+    const response = await call(database, "/p/buycarthailand.png", {}, { ASSETS: previewAssets() });
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-type")).toBe("image/png");
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    expect(bytes).toEqual(PREVIEW_PNG);
+  });
+
+  it("returns 404 for unknown slugs and does not leak other assets", async () => {
+    const database = db();
+    const hidden = previewAssets({ "/p/secret.png": PREVIEW_PNG });
+    expect((await call(database, "/p/not-a-shop")).status).toBe(404);
+    expect((await call(database, "/p/not-a-shop.png", {}, { ASSETS: hidden })).status).toBe(404);
+    expect((await call(database, "/p/secret.png", {}, { ASSETS: hidden })).status).toBe(404);
+    const denied = await call(database, "/p/buycarthailand", { method: "POST" });
+    expect(denied.status).toBe(405);
   });
 });

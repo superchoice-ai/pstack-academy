@@ -2,7 +2,7 @@ import { allowedLeadsOrigin, withCors } from "./cors";
 import { parseSendCsv } from "./csv";
 import { isCompanyDomain, isPlatformHost, isPublicMailbox, isStatus, LIMITS } from "./constants";
 import type { LeadsEnv } from "./db";
-import { html, isRecord, json, readJson } from "./http";
+import { html, isRecord, json, previewHtml, readJson } from "./http";
 import {
   normalizeDomain,
   normalizeEmail,
@@ -12,7 +12,8 @@ import {
   parseTouch,
   showInput,
 } from "./normalize";
-import { unsubscribePage } from "./pages";
+import { previewPage, unsubscribePage } from "./pages";
+import { PREVIEW_IMAGE_HEIGHT, PREVIEW_IMAGE_WIDTH, previewBySlug } from "./previews";
 import {
   checkSuppression,
   dailyStats,
@@ -161,6 +162,7 @@ async function route(
       unsubscribe: "/u/:token",
     });
   }
+  if (path.startsWith("/p/")) return preview(request, env, url, path);
   if (path.startsWith("/u/")) return unsubscribe(request, env, path.slice(3), nowIso);
   if (!path.startsWith("/api/")) return json({ error: "not_found" }, 404);
 
@@ -168,6 +170,62 @@ async function route(
   if (denied) return denied;
   const secret = env.LEADS_UNSUBSCRIBE_SECRET ?? "";
   return api(request, env, path, url, secret, now().toISOString(), now());
+}
+
+async function preview(request: Request, env: LeadsEnv, url: URL, path: string): Promise<Response> {
+  if (request.method !== "GET" && request.method !== "HEAD") {
+    return json({ error: "method_not_allowed" }, 405);
+  }
+
+  const pngMatch = /^\/p\/([a-z0-9]+(?:-[a-z0-9]+)*)\.png$/.exec(path);
+  if (pngMatch?.[1]) {
+    const item = previewBySlug(pngMatch[1]);
+    if (!item) return new Response(null, { status: 404 });
+    return previewImage(request, env, url, item.slug);
+  }
+
+  const pageMatch = /^\/p\/([a-z0-9]+(?:-[a-z0-9]+)*)$/.exec(path);
+  if (!pageMatch?.[1]) return new Response(null, { status: 404 });
+  const item = previewBySlug(pageMatch[1]);
+  if (!item) return new Response(null, { status: 404 });
+
+  const pageUrl = `${url.origin}/p/${item.slug}`;
+  const imageUrl = `${url.origin}/p/${item.slug}.png`;
+  const body = previewPage({
+    business: item.business,
+    pageUrl,
+    imageUrl,
+    imageWidth: PREVIEW_IMAGE_WIDTH,
+    imageHeight: PREVIEW_IMAGE_HEIGHT,
+  });
+  const response = previewHtml(body);
+  if (request.method === "HEAD") {
+    return new Response(null, { status: response.status, headers: response.headers });
+  }
+  return response;
+}
+
+async function previewImage(
+  request: Request,
+  env: LeadsEnv,
+  url: URL,
+  slug: string,
+): Promise<Response> {
+  if (!env.ASSETS) return new Response(null, { status: 503 });
+  const asset = await env.ASSETS.fetch(
+    new Request(new URL(`/p/${slug}.png`, url.origin), { method: "GET" }),
+  );
+  if (!asset.ok) return new Response(null, { status: 404 });
+  const headers = new Headers();
+  headers.set("content-type", "image/png");
+  headers.set("cache-control", "public, max-age=86400");
+  headers.set("x-content-type-options", "nosniff");
+  const length = asset.headers.get("content-length");
+  if (length) headers.set("content-length", length);
+  const etag = asset.headers.get("etag");
+  if (etag) headers.set("etag", etag);
+  if (request.method === "HEAD") return new Response(null, { status: 200, headers });
+  return new Response(asset.body, { status: 200, headers });
 }
 
 async function unsubscribe(

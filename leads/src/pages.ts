@@ -51,3 +51,73 @@ export function unsubscribePage(kind: "ok" | "invalid" | "missing" | "unavailabl
 </article></main>`,
   );
 }
+
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+export function previewPage(input: {
+  business: string;
+  pageUrl: string;
+  imageUrl: string;
+  imageWidth: number;
+  imageHeight: number;
+}): string {
+  const business = escapeHtml(input.business);
+  const title = escapeHtml(`${input.business} · ตัวอย่างหน้าเว็บ`);
+  const description = escapeHtml(`ตัวอย่างหน้าเว็บแอปสำหรับ ${input.business} โดย SuperChoice`);
+  const pageUrl = escapeHtml(input.pageUrl);
+  const imageUrl = escapeHtml(input.imageUrl);
+  return `<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>${title}</title>
+<meta property="og:type" content="website">
+<meta property="og:locale" content="th_TH">
+<meta property="og:title" content="${title}">
+<meta property="og:description" content="${description}">
+<meta property="og:url" content="${pageUrl}">
+<meta property="og:image" content="${imageUrl}">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="${input.imageWidth}">
+<meta property="og:image:height" content="${input.imageHeight}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${title}">
+<meta name="twitter:description" content="${description}">
+<meta name="twitter:image" content="${imageUrl}">
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; background: #f3ecdf; color: #1d1914;
+    font-family: "Noto Sans Thai", Garuda, "Leelawadee UI", "Sukhumvit Set", Thonburi, Palatino, sans-serif;
+    line-height: 1.45;
+  }
+  main { max-width: 880px; margin: 6vh auto; padding: 0 20px 40px; }
+  h1 { margin: 0 0 16px; font-size: 1.6rem; }
+  img { display: block; width: 100%; height: auto; background: #fffaf3; border: 1px solid #e4d7c4; }
+  .actions { display: flex; flex-wrap: wrap; gap: 12px 20px; margin-top: 20px; align-items: center; }
+  a { color: #1c6b4a; }
+  .line {
+    display: inline-block; background: #06c755; color: #fff; text-decoration: none;
+    padding: 10px 16px; border-radius: 8px; font-weight: 600;
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>${business}</h1>
+  <p><img src="${imageUrl}" alt="${escapeHtml(`ตัวอย่างหน้าเว็บของ ${input.business}`)}" width="${input.imageWidth}" height="${input.imageHeight}"></p>
+  <p class="actions"><a class="line" href="https://lin.ee/wNUnj5c">เพิ่มเพื่อน LINE OA</a><span>ติดต่อ <a href="mailto:superchoice@hotmail.com">superchoice@hotmail.com</a></span></p>
+</main>
+</body>
+</html>`;
+}

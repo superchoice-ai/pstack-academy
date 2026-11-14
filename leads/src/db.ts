@@ -22,8 +22,13 @@ export interface LeadDb {
   batch<T = Record<string, unknown>>(statements: BoundStatement[]): Promise<QueryResult<T>[]>;
 }
 
+export type AssetFetcher = {
+  fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response>;
+};
+
 export type LeadsEnv = {
   DB: LeadDb;
   LEADS_API_TOKEN?: string;
   LEADS_UNSUBSCRIBE_SECRET?: string;
+  ASSETS?: AssetFetcher;
 };

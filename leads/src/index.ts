@@ -8,6 +8,7 @@ export default {
         DB: env.DB,
         LEADS_API_TOKEN: env.LEADS_API_TOKEN,
         LEADS_UNSUBSCRIBE_SECRET: env.LEADS_UNSUBSCRIBE_SECRET,
+        ASSETS: env.ASSETS,
       };
       return await handleRequest(request, bindings);
     } catch (error) {
