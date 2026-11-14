@@ -7,7 +7,7 @@ import { readFileSync } from "node:fs";
 import type { LeadDb } from "../src/db";
 import { handleRequest } from "../src/handler";
 import { signLeadId } from "../src/tokens";
-import { migrationSql, openTestDb } from "./d1";
+import { migrationFiles, openTestDb } from "./d1";
 
 const TOKEN = "test-api-token-value";
 const SECRET = "test-unsubscribe-secret";
@@ -68,6 +68,7 @@ function lead(overrides: Record<string, unknown> = {}) {
     email: "owner@cafe.example.co.th",
     phone: "0812345678",
     line_id: "@cafeth",
+    line_url: "https://lin.ee/cafeth",
     source_url: "https://example.com/source",
     fit_score: 82,
     notes: "เปิดสาขาใหม่",
@@ -94,11 +95,16 @@ describe("migrations", () => {
     open.push(sqlite);
     sqlite.exec("CREATE TABLE certificates (id TEXT PRIMARY KEY, name TEXT NOT NULL)");
     sqlite.exec("INSERT INTO certificates (id, name) VALUES ('SC-1', 'Amina')");
-    const sql = migrationSql();
-    expect(sql.toLowerCase()).not.toContain("certificates");
-    expect(sql.toLowerCase()).not.toContain("drop ");
-    sqlite.exec(sql);
-    sqlite.exec(sql);
+    const files = migrationFiles();
+    expect(files[0]?.name).toBe("0001_leads.sql");
+    for (const file of files) {
+      expect(file.sql.toLowerCase()).not.toContain("certificates");
+      expect(file.sql.toLowerCase()).not.toContain("drop table leads");
+    }
+    expect(files[0]?.sql.toLowerCase()).not.toContain("drop ");
+    sqlite.exec(files[0]!.sql);
+    sqlite.exec(files[0]!.sql);
+    for (const file of files.slice(1)) sqlite.exec(file.sql);
     const row = sqlite.query("SELECT name FROM certificates WHERE id = ?").get("SC-1") as {
       name: string;
     };
@@ -129,6 +135,24 @@ describe("migrations", () => {
       n: number;
     };
     expect(empties.n).toBe(2);
+    const columns = sqlite.query("PRAGMA table_info(leads)").all() as Array<{ name: string }>;
+    expect(columns.map((column) => column.name)).toContain("line_url");
+    sqlite
+      .query(
+        "INSERT INTO touches (id, lead_id, channel, direction, subject, summary, sent_at, client_ref, created_at) VALUES (?, ?, ?, ?, '', '', ?, '', ?)",
+      )
+      .run(
+        "t1",
+        "1",
+        "imessage",
+        "outbound",
+        "2026-11-14T00:00:00.000Z",
+        "2026-11-14T00:00:00.000Z",
+      );
+    const touch = sqlite.query("SELECT channel FROM touches WHERE id = ?").get("t1") as {
+      channel: string;
+    };
+    expect(touch.channel).toBe("imessage");
   });
 });
 
@@ -524,6 +548,101 @@ describe("pipeline", () => {
       notes: "นัดวันศุกร์",
       status: "talking",
     });
+  });
+
+  it("returns and patches line_url and accepts imessage and whatsapp touches", async () => {
+    const database = db();
+    const created = await upsert(database, [
+      lead({ email: "chat@shop.example.co.th", website: "" }),
+    ]);
+    const id = String(created.body.results[0]?.id);
+    const listed = await call(database, `/api/leads/${id}`, authed());
+    const before = (await listed.json()) as {
+      lead: { phone: string; line_id: string; line_url: string };
+    };
+    expect(before.lead).toMatchObject({
+      phone: "0812345678",
+      line_id: "@cafeth",
+      line_url: "https://lin.ee/cafeth",
+    });
+
+    const patched = await call(
+      database,
+      `/api/leads/${id}`,
+      authed({
+        method: "PATCH",
+        body: JSON.stringify({
+          phone: "+66812345678",
+          line_id: "@shopth",
+          line_url: "https://lin.ee/shopth",
+        }),
+      }),
+    );
+    expect(patched.status).toBe(200);
+    expect(
+      ((await patched.json()) as { lead: { phone: string; line_id: string; line_url: string } })
+        .lead,
+    ).toMatchObject({
+      phone: "+66812345678",
+      line_id: "@shopth",
+      line_url: "https://lin.ee/shopth",
+    });
+
+    const imessage = await call(
+      database,
+      "/api/touches",
+      authed({
+        method: "POST",
+        body: JSON.stringify({
+          lead_id: id,
+          channel: "imessage",
+          direction: "outbound",
+          summary: "ทัก iMessage",
+          client_ref: "imessage-1",
+        }),
+      }),
+    );
+    const imessageBody = (await imessage.json()) as {
+      touch: { channel: string };
+      lead: { status: string };
+    };
+    expect(imessage.status).toBe(200);
+    expect(imessageBody.touch.channel).toBe("imessage");
+    expect(imessageBody.lead.status).toBe("contacted");
+
+    const whatsapp = await call(
+      database,
+      "/api/touches",
+      authed({
+        method: "POST",
+        body: JSON.stringify({
+          lead_id: id,
+          channel: "whatsapp",
+          direction: "inbound",
+          summary: "ตอบ WhatsApp",
+        }),
+      }),
+    );
+    expect(whatsapp.status).toBe(200);
+    expect(((await whatsapp.json()) as { touch: { channel: string }; lead: { status: string } }).touch.channel).toBe(
+      "whatsapp",
+    );
+
+    const bad = await call(
+      database,
+      "/api/touches",
+      authed({
+        method: "POST",
+        body: JSON.stringify({
+          lead_id: id,
+          channel: "sms",
+          direction: "outbound",
+          summary: "ไม่รองรับ",
+        }),
+      }),
+    );
+    expect(bad.status).toBe(400);
+    expect(await bad.json()).toEqual({ error: "invalid_channel" });
   });
 
   it("keeps a company suppressed after the status is set to opted_out and moved again", async () => {

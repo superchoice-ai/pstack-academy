@@ -1,4 +1,4 @@
-import { isCompanyDomain, isPublicMailbox, isStatus, LIMITS, type Status } from "./constants";
+import { isChannel, isCompanyDomain, isPublicMailbox, isStatus, LIMITS, type Channel, type Status } from "./constants";
 import { isLeadId } from "./tokens";
 
 export type LeadInput = {
@@ -8,6 +8,7 @@ export type LeadInput = {
   email: string;
   phone: string;
   line_id: string;
+  line_url: string;
   source_url: string;
   fit_score: number;
   fit_score_set: boolean;
@@ -132,6 +133,10 @@ export function parseLead(
   if (!phone.ok) return { ok: false, error: "invalid_phone" };
   const lineId = readString(record, "line_id", LIMITS.lineId);
   if (!lineId.ok) return { ok: false, error: "invalid_line_id" };
+  const lineUrlRaw = readString(record, "line_url", LIMITS.lineUrl);
+  if (!lineUrlRaw.ok) return { ok: false, error: "invalid_line_url" };
+  const lineUrl = canonicalSource(lineUrlRaw.value);
+  if (lineUrl === null) return { ok: false, error: "invalid_line_url" };
   const sourceRaw = readString(record, "source_url", LIMITS.sourceUrl);
   if (!sourceRaw.ok) return { ok: false, error: "invalid_source_url" };
   const source = canonicalSource(sourceRaw.value);
@@ -166,6 +171,7 @@ export function parseLead(
       email,
       phone: phone.value,
       line_id: lineId.value,
+      line_url: lineUrl,
       source_url: source,
       fit_score: fitScore,
       fit_score_set: fitScoreSet,
@@ -180,7 +186,7 @@ export function parseLead(
 export type TouchInput = {
   lead_id: string;
   email: string;
-  channel: "email" | "line";
+  channel: Channel;
   direction: "outbound" | "inbound";
   subject: string;
   summary: string;
@@ -204,7 +210,7 @@ export function parseTouch(
   if (email === null) return { ok: false, error: "invalid_email" };
   if (!leadId.value && !email) return { ok: false, error: "needs_lead" };
   const channel = record.channel;
-  if (channel !== "email" && channel !== "line") return { ok: false, error: "invalid_channel" };
+  if (!isChannel(channel)) return { ok: false, error: "invalid_channel" };
   const direction = record.direction;
   if (direction !== "outbound" && direction !== "inbound")
     return { ok: false, error: "invalid_direction" };
@@ -246,6 +252,7 @@ export type LeadPatch = {
   industry?: string;
   phone?: string;
   line_id?: string;
+  line_url?: string;
   notes?: string;
   pain_point?: string;
   fit_score?: number;
@@ -278,6 +285,13 @@ export function parsePatch(
     const lineId = readString(record, "line_id", LIMITS.lineId);
     if (!lineId.ok) return { ok: false, error: "invalid_line_id" };
     patch.line_id = lineId.value;
+  }
+  if ("line_url" in record) {
+    const lineUrlRaw = readString(record, "line_url", LIMITS.lineUrl);
+    if (!lineUrlRaw.ok) return { ok: false, error: "invalid_line_url" };
+    const lineUrl = canonicalSource(lineUrlRaw.value);
+    if (lineUrl === null) return { ok: false, error: "invalid_line_url" };
+    patch.line_url = lineUrl;
   }
   if ("notes" in record) {
     const notes = readString(record, "notes", LIMITS.notes);

@@ -1,5 +1,5 @@
 import { sendRef, type SendLogRow } from "./csv";
-import { isCompanyDomain, isStatus, STATUSES, statusWasContacted, type Status } from "./constants";
+import { isChannel, isCompanyDomain, isStatus, STATUSES, statusWasContacted, type Channel, type Status } from "./constants";
 import type { BoundStatement, LeadDb } from "./db";
 import {
   emailDomainOf,
@@ -19,6 +19,7 @@ export type LeadRow = {
   email: string;
   phone: string;
   line_id: string;
+  line_url: string;
   source_url: string;
   fit_score: number;
   notes: string;
@@ -33,7 +34,7 @@ export type LeadRow = {
 export type TouchRow = {
   id: string;
   lead_id: string;
-  channel: "email" | "line";
+  channel: Channel;
   direction: "outbound" | "inbound";
   subject: string;
   summary: string;
@@ -107,7 +108,7 @@ export type DayPoint = {
 type FilterColumn = "email" | "domain" | "email_domain" | "lead_id" | "id" | "client_ref";
 
 const LEAD_SELECT =
-  "SELECT id, business_name, industry, website, email, phone, line_id, source_url, fit_score, notes, pain_point, status, domain, email_domain, created_at, updated_at FROM leads";
+  "SELECT id, business_name, industry, website, email, phone, line_id, line_url, source_url, fit_score, notes, pain_point, status, domain, email_domain, created_at, updated_at FROM leads";
 
 const TOUCH_SELECT =
   "SELECT id, lead_id, channel, direction, subject, summary, sent_at, client_ref, created_at FROM touches";
@@ -177,6 +178,7 @@ function readLead(row: Record<string, unknown>): LeadRow {
     email: String(row.email ?? ""),
     phone: String(row.phone ?? ""),
     line_id: String(row.line_id ?? ""),
+    line_url: String(row.line_url ?? ""),
     source_url: String(row.source_url ?? ""),
     fit_score: num(row.fit_score),
     notes: String(row.notes ?? ""),
@@ -190,7 +192,7 @@ function readLead(row: Record<string, unknown>): LeadRow {
 }
 
 function readTouch(row: Record<string, unknown>): TouchRow {
-  const channel = row.channel === "line" ? "line" : row.channel === "email" ? "email" : null;
+  const channel = isChannel(row.channel) ? row.channel : null;
   const direction =
     row.direction === "inbound" ? "inbound" : row.direction === "outbound" ? "outbound" : null;
   if (!channel || !direction) throw new Error("bad_touch");
@@ -234,9 +236,9 @@ function insertLead(db: LeadDb, lead: LeadRow): BoundStatement {
   return db
     .prepare(
       `INSERT INTO leads (
-        id, business_name, industry, website, email, phone, line_id, source_url,
+        id, business_name, industry, website, email, phone, line_id, line_url, source_url,
         fit_score, notes, pain_point, status, domain, email_domain, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       lead.id,
@@ -246,6 +248,7 @@ function insertLead(db: LeadDb, lead: LeadRow): BoundStatement {
       lead.email,
       lead.phone,
       lead.line_id,
+      lead.line_url,
       lead.source_url,
       lead.fit_score,
       lead.notes,
@@ -263,8 +266,8 @@ function updateLead(db: LeadDb, lead: LeadRow): BoundStatement {
     .prepare(
       `UPDATE leads SET
         business_name = ?, industry = ?, website = ?, email = ?, phone = ?, line_id = ?,
-        source_url = ?, fit_score = ?, notes = ?, pain_point = ?, status = ?, domain = ?,
-        email_domain = ?, updated_at = ?
+        line_url = ?, source_url = ?, fit_score = ?, notes = ?, pain_point = ?, status = ?,
+        domain = ?, email_domain = ?, updated_at = ?
       WHERE id = ?`,
     )
     .bind(
@@ -274,6 +277,7 @@ function updateLead(db: LeadDb, lead: LeadRow): BoundStatement {
       lead.email,
       lead.phone,
       lead.line_id,
+      lead.line_url,
       lead.source_url,
       lead.fit_score,
       lead.notes,
@@ -355,6 +359,7 @@ function contentChanged(before: LeadRow, after: LeadRow): boolean {
     before.email !== after.email ||
     before.phone !== after.phone ||
     before.line_id !== after.line_id ||
+    before.line_url !== after.line_url ||
     before.source_url !== after.source_url ||
     before.fit_score !== after.fit_score ||
     before.notes !== after.notes ||
@@ -379,6 +384,7 @@ function mergeLead(
     email,
     phone: input.phone || lead.phone,
     line_id: input.line_id || lead.line_id,
+    line_url: input.line_url || lead.line_url,
     source_url: input.source_url || lead.source_url,
     fit_score: input.fit_score_set ? input.fit_score : lead.fit_score,
     notes: input.notes || lead.notes,
@@ -533,6 +539,7 @@ export async function upsertLeads(
       email: input.email,
       phone: input.phone,
       line_id: input.line_id,
+      line_url: input.line_url,
       source_url: input.source_url,
       fit_score: input.fit_score,
       notes: input.notes,
@@ -767,6 +774,7 @@ export async function patchLead(
     industry: patch.industry ?? lead.industry,
     phone: patch.phone ?? lead.phone,
     line_id: patch.line_id ?? lead.line_id,
+    line_url: patch.line_url ?? lead.line_url,
     notes: patch.notes ?? lead.notes,
     pain_point: patch.pain_point ?? lead.pain_point,
     fit_score: patch.fit_score ?? lead.fit_score,

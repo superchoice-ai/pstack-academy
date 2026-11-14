@@ -43,6 +43,7 @@ export type PublicLead = {
   email: string;
   phone: string;
   line_id: string;
+  line_url: string;
   source_url: string;
   fit_score: number;
   notes: string;
@@ -67,6 +68,7 @@ export function toPublic(lead: LeadRow, unsubscribe_url: string): PublicLead {
     email: lead.email,
     phone: lead.phone,
     line_id: lead.line_id,
+    line_url: lead.line_url,
     source_url: lead.source_url,
     fit_score: lead.fit_score,
     notes: lead.notes,
